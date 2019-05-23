@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+'''
+This file is modified from the official github repo of Keras:
+https://github.com/keras-team/keras-applications/blob/master/keras_applications/vgg19.py
+'''
+
 import numpy as np
 import tensorflow as tf
 from keras.models import Model
@@ -12,9 +17,8 @@ from keras.engine.topology import get_source_inputs
 WEIGHTS_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.1/vgg19_weights_tf_dim_ordering_tf_kernels.h5'
 
 def VGG19(include_top=True, weights='imagenet',
-          input_tensor=None, input_shape=None,
-          pooling=None,
-          classes=1000):
+            input_shape=[256, 256, 3], input_tensor=None,
+            pooling=None, classes=1000):
     
     # Determine proper input shape
     input_shape = _obtain_input_shape(input_shape,
@@ -23,13 +27,9 @@ def VGG19(include_top=True, weights='imagenet',
                                       data_format=K.image_data_format(),
                                       require_flatten=include_top)
 
-    if input_tensor is None:
-        img_input = Input(shape=input_shape)
-    else:
-        if not K.is_keras_tensor(input_tensor):
-            img_input = Input(tensor=input_tensor, shape=input_shape)
-        else:
-            img_input = input_tensor
+    # Make input
+    img_input = Input(shape=input_shape)
+    
     # Block 1
     x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(img_input)
     x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
@@ -67,12 +67,9 @@ def VGG19(include_top=True, weights='imagenet',
     x = Dense(4096, activation='relu', name='fc2')(x)
     x = Dense(classes, activation='softmax', name='predictions')(x)
 
-    # Ensure that the model takes into account
-    # any potential predecessors of `input_tensor`.
-    if input_tensor is not None:
-        inputs = get_source_inputs(input_tensor)
-    else:
-        inputs = img_input
+    # Get input tensor
+    inputs = get_source_inputs(input_tensor)
+
     # Create model.
     model = Model(inputs, x, name='vgg19')
 
@@ -81,4 +78,5 @@ def VGG19(include_top=True, weights='imagenet',
                                 WEIGHTS_PATH,
                                 cache_subdir='models')
     model.load_weights(weights_path)
+    
     return model
