@@ -1,3 +1,4 @@
+import time
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.models import Model
@@ -116,6 +117,11 @@ class CartoonGAN():
 
     # compile each model
     def compile_model(self):
+        # init summary writer for tensorboard
+        self.callback1 = TensorBoard(self.log_dir+'1')
+        self.callback2 = TensorBoard(self.log_dir+'2')
+        
+        # model stuff
         input_shape=[self.image_size, self.image_size, 3]
         adam1 = Adam(lr=0.0005)
         adam2 = Adam(lr=0.0005)
@@ -132,6 +138,10 @@ class CartoonGAN():
         self.train_generator.compile(loss=[self.vgg_loss, 'binary_crossentropy'],
                                              loss_weights=[10.0, 1.0],
                                              optimizer=adam2)
+        
+        # set callback model
+        self.callback1.set_model(self.discriminator)
+        self.callback2.set_model(self.train_generator)
 
     # method for training process
     def train(self, batch_generator):
@@ -139,6 +149,8 @@ class CartoonGAN():
         real = np.ones((batch_generator.batch_size,) + (self.image_size,self.image_size,self.image_channels))
         fake = np.zeros((batch_generator.batch_size,) + (self.image_size,self.image_size,self.image_channels))
 
+        # start training
+        start_time = time.time()
         for i in range(self.epochs):
             print('Epoch {}'.format(i+1))
             for idx, (cartoon, smooth_cartoon, photo) in enumerate(batch_generator):
@@ -151,9 +163,16 @@ class CartoonGAN():
 
                 # train generator
                 g_loss = self.train_generator.train_on_batch(photo,[photo, real])
-                print("Batch {}, d_loss: {}, g_loss: {}".format(idx, d_loss, g_loss))
+                print("Batch %d, d_loss: %.5f, g_loss: %.5f, with time: %4.4f" % (idx, d_loss, g_loss, time.time()-start_time))
+
+                # add losses to writer
+                write_log(self.callback1, 'd_loss', d_loss, idx)
+                write_log(self.callback2, 'g_loss', g_loss, idx)
 
                 # change learning rate 
                 if idx % 500 == 0 and self.discriminator.optimizer.lr > 0.0001:
                     K.set_value(self.discriminator.optimizer.lr, self.discriminator.optimizer.lr*0.95)
                     K.set_value(self.train_generator.optimizer.lr, self.train_generator.optimizer.lr*0.95)
+        
+        print('Done!')
+        self.generator.save('CartoonGan_generator.h5')

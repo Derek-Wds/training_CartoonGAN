@@ -5,7 +5,7 @@ from tqdm import tqdm
 # edge smoothing
 def smooth_edge(path, img_size=256):
     file_list = os.listdir(path)
-    save_dir = 'dataset/smooth_cartoon_imgs'
+    save_path = 'dataset/smooth_cartoon_imgs'
 
     kernel_size = 5
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
@@ -36,7 +36,7 @@ def smooth_edge(path, img_size=256):
             result[idx[0][i], idx[1][i], 1] = np.sum(np.multiply(pad_img[idx[0][i]:idx[0][i] + kernel_size, idx[1][i]:idx[1][i] + kernel_size, 1], gauss))
             result[idx[0][i], idx[1][i], 2] = np.sum(np.multiply(pad_img[idx[0][i]:idx[0][i] + kernel_size, idx[1][i]:idx[1][i] + kernel_size, 2], gauss))
         
-        cv2.imwrite(os.path.join(save_dir, file_name), gauss_img)
+        cv2.imwrite(os.path.join(save_path, file_name), gauss_img)
 
 if __name__ == "__main__":
     smooth_edge('dataset/cartoon_imgs')

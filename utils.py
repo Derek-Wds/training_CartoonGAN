@@ -1,3 +1,5 @@
+import cv2, glob
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.preprocessing.image import load_img, save_img, img_to_array
@@ -6,51 +8,40 @@ from vgg19 import VGG19
 
 # data generator to get batches of data
 class DataGenerator(keras.utils.Sequence):
-    def __init__(self, list_IDs, labels, batch_size=32, dim=(32,32,32), n_channels=1,
-                 n_classes=10, shuffle=True):
-        self.dim = dim
+    def __init__(self, root, img_size=256, batch_size=32, shuffle=True):
+        self.root = root
+        self.photo_imgs = glob.glob(root + "/photo_imgs/*.*")
+        self.cartoon_imgs = glob.glob(root + "/cartoon_imgs/*.*")
+        self.smooth_cartoon_imgs = glob.glob(root + "/smooth_cartoon_imgs/*.*")
+        self.img_size = img_size
         self.batch_size = batch_size
-        self.labels = labels
-        self.list_IDs = list_IDs
-        self.n_channels = n_channels
-        self.n_classes = n_classes
         self.shuffle = shuffle
         self.on_epoch_end()
 
+    # return the length
     def __len__(self):
-        return int(np.floor(len(self.list_IDs) / self.batch_size))
+        length = min(len(self.photo_imgs),len(self.cartoon_imgs),len(self.smooth_cartoon_imgs))
+        return int(length /self.batch_size)
 
+    # the things to be returned at each batch
     def __getitem__(self, index):
-        # Generate indexes of the batch
-        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        photo_batch = self.photo_imgs[idx*self.batch_size: (idx+1)*self.batch_size]
+        cartoon_batch = self.cartoon_imgs[idx*self.batch_size: (idx+1)*self.batch_size]
+        smooth_cartoon_batch = self.smooth_cartoon_imgs[idx*self.batch_size: (idx+1)*self.batch_size]
 
-        # Find list of IDs
-        list_IDs_temp = [self.list_IDs[k] for k in indexes]
+        return load(photo_batch), load(cartoon_batch), load(smooth_cartoon_batch)
 
-        # Generate data
-        X, y = self.__data_generation(list_IDs_temp)
-
-        return X, y
-
+    # shuffle at the epoch's end
     def on_epoch_end(self):
-        self.indexes = np.arange(len(self.list_IDs))
         if self.shuffle == True:
-            np.random.shuffle(self.indexes)
+            np.random.shuffle(self.photo_imgs)
+            np.random.shuffle(self.cartoon_imgs)
+            np.random.shuffle(self.smooth_cartoon_imgs)
 
-    def __data_generation(self, list_IDs_temp):
-        # Initialization
-        X = np.empty((self.batch_size, *self.dim, self.n_channels))
-        y = np.empty((self.batch_size), dtype=int)
-
-        # Generate data
-        for i, ID in enumerate(list_IDs_temp):
-            # Store sample
-            X[i,] = np.load('data/' + ID + '.npy')
-
-            # Store class
-            y[i] = self.labels[ID]
-
-        return X, keras.utils.to_categorical(y, num_classes=self.n_classes)
+# load image in the data generator
+def load(imgs):
+    ouput = np.array([preprocess(img) for img in imgs])
+    return ouput
 
 # preprocess image
 def preprocess(filename, size=256, channels=3):
@@ -59,4 +50,13 @@ def preprocess(filename, size=256, channels=3):
     img = tf.image.resize_images(x_decode, [size, size])
     img = tf.cast(img, tf.float32) / 127.5 - 1
 
-    return img
+    return img.eval()
+
+# function to write the logs
+def write_log(callback, name, value, batch):
+    summary = tf.Summary()
+    summary_value = summary.value.add()
+    summary_value.simple_value = value
+    summary_value.tag = name
+    callback.writer.add_summary(summary, batch)
+    callback.writer.flush()
