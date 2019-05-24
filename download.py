@@ -1,4 +1,7 @@
 import requests
+from urllib import request
+from pprint import pprint
+from google_images_download import google_images_download 
 
 # grab photos from Pixabay
 class Pixabay:
@@ -22,18 +25,97 @@ class Pixabay:
         if len(query) > 0:
             self.params['query'] = query
 
-counter = 0
 
-key = "7429820-c0f17225d11abf9ffe919ad24"
-p = Pixabay(key)
+# function to dowload the cartoon images from google
+response = google_images_download.googleimagesdownload() 
 
-for i in range(10):
-    res = p.search()
-    for img in res:
-        img_req = requests.get(img)
-        if img_req.status_code == 200:
-            with open("./"+str(counter)+'.jpg', 'wb') as f:
-                f.write(img_req.content) 
-                counter += 1
+def downloadimages(query): 
+    # keywords is the search query 
+    # format is the image file format 
+    # limit is the number of images to be downloaded 
+    # print urs is to print the image file url 
+    # size is the image size which can 
+    # be specified manually ("large, medium, icon") 
+    # aspect ratio denotes the height width ratio 
+    # of images to download. ("tall, square, wide, panoramic") 
+    arguments = {"keywords":query,
+                    "format": "jpg",
+                    "limit":100,
+                    "print_urls":True,
+                    "size": "medium",
+                    "aspect_ratio": "panoramic",
+                    "chromedriver":"/home/dingsu/chromedriver", # One needs to change this in order to make the selenium work
+                    "image_directory":"dataset/cartoon_imgs"}
+    try: 
+        response.download(arguments) 
+    
+    # Handling File NotFound Error	 
+    except FileNotFoundError: 
+        arguments = {"keywords": query, 
+                    "format": "jpg", 
+                    "limit":100, 
+                    "print_urls":True, 
+                    "size": "medium",
+                    "chromedriver":'/home/dingsu/chromedriver', # One needs to change this in order to make the selenium work
+                    "image_directory":"dataset/cartoon_imgs"} 
+                    
+        # Providing arguments for the searched query 
+        try: 
+            # Downloading the photos based 
+            # on the given arguments 
+            response.download(arguments) 
+        except: 
+            pass
 
-# grab cartoon photos
+
+if __name__ == "__main__":
+    # creating object 
+    print('==========================================================================')
+    print('Downloading the studio ghibli cartoon images from google')
+    print('==========================================================================')
+
+    # Driver Code 
+    downloadimages("miyazaki spirited away wallpaper")
+    downloadimages("miyazaki my neighbor totoro wallpaper")
+    downloadimages("miyazaki howl's moving castle wallpaper")
+    downloadimages("miyazaki castle in the sky wallpaper")
+    downloadimages("miyazaki ponyo on the cliff wallpaper")
+    downloadimages("studio ghibli cartoon images")
+
+
+    print('==========================================================================')
+    print('Cartoon images download completed!')
+    print('==========================================================================')
+
+
+    print()
+    print()
+
+
+    print('==========================================================================')
+    print('Download photos from pixabay')
+    print('==========================================================================')
+    
+    counter = 0
+    key = "7429820-c0f17225d11abf9ffe919ad24"
+    p = Pixabay(key)
+
+    for i in range(100):
+        res = p.search()
+        print('Downloading round {} images!'.format(i+1))
+        for img in res:
+            img_req = requests.get(img)
+            if img_req.status_code == 200:
+                with open("./dataset/photo_imgs/"+str(counter)+'.jpg', 'wb') as f:
+                    f.write(img_req.content) 
+                    counter += 1
+                    print(str(counter) + ".jpg" + ' has been saved!')
+
+    print('==========================================================================')
+    print('Photos download completed!')
+    print('==========================================================================')
+
+    print()
+    print()
+    print("ATTENTION! Please remember to move the photos to 'dataset' folder and creat 3 sub folders in it:" + \
+    " 'cartoon_imgs' and 'smooth_cartoon_imgs'")

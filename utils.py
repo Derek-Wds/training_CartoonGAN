@@ -10,9 +10,9 @@ from vgg19 import VGG19
 class DataGenerator(keras.utils.Sequence):
     def __init__(self, root, img_size=256, batch_size=32, shuffle=True):
         self.root = root
-        self.photo_imgs = glob.glob(root + "/photo_imgs/*.*")
-        self.cartoon_imgs = glob.glob(root + "/cartoon_imgs/*.*")
-        self.smooth_cartoon_imgs = glob.glob(root + "/smooth_cartoon_imgs/*.*")
+        self.photo_imgs = glob.glob("dataset/photo_imgs/*.*")
+        self.cartoon_imgs = glob.glob("dataset/cartoon_imgs/*.*")
+        self.smooth_cartoon_imgs = glob.glob("dataset/smooth_cartoon_imgs/*.*")
         self.img_size = img_size
         self.batch_size = batch_size
         self.shuffle = shuffle
