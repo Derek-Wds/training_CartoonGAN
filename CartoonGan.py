@@ -21,7 +21,7 @@ class CartoonGAN():
     
     # method for generator
     def generator(self):
-        input_shape=[self.image_size, self.image_size, 3]
+        input_shape=[self.image_size, self.image_size, self.image_channels]
         input_img = Input(shape=input_shape, name="input")
 
         # first block
@@ -35,7 +35,7 @@ class CartoonGAN():
         for i in range(2):
             x = Conv2D(channel, (3, 3), strides=2, use_bias=True, padding='same', name="conv{}_1".format(i+2))(x)
             x = Conv2D(channel, (3, 3), strides=1, use_bias=True, padding='same', name="conv{}_2".format(i+2))(x)
-            x = InstanceNormalization(name="norm2")(x)
+            x = InstanceNormalization(name="norm{}".format(i+2))(x)
             x = Activation("relu")(x)
             channel = channel * 2
         
@@ -65,13 +65,13 @@ class CartoonGAN():
         x = Conv2D(3, (7, 7), strides=1, use_bias=True, padding="valid", name="deconv3")(x)
         x = Activation("tanh")(x)
         
-        model = Model(intput_img, x, name='Cartoon Generator')
+        model = Model(input_img, x, name='Cartoon_Generator')
 
         return model
 
     # method for discriminator
     def discriminator(self):
-        input_shape=[self.image_size, self.image_size, 3]
+        input_shape=[self.image_size, self.image_size, self.image_channels]
         input_img = Input(shape=input_shape, name="input")
 
         # first block
@@ -80,10 +80,10 @@ class CartoonGAN():
 
         # block loop
         channel = 64
-        for i in range(3):
+        for i in range(2):
             x = Conv2D(channel, (3, 3), strides=2, use_bias=True, padding='same', name="conv{}_1".format(i+2))(x)
             x = LeakyReLU(alpha=0.2)(x)
-            x = Conv2D(channel, (3, 3), strides=1, use_bias=True, padding='same', name="conv{}_2".format(i+2))(x)
+            x = Conv2D(channel*2, (3, 3), strides=1, use_bias=True, padding='same', name="conv{}_2".format(i+2))(x)
             x = InstanceNormalization()(x)
             x = LeakyReLU(alpha=0.2)(x)
             channel = channel * 2
@@ -93,20 +93,21 @@ class CartoonGAN():
         x = InstanceNormalization()(x)
         x = LeakyReLU(alpha=0.2)(x)
         
-        x = Conv2D(1, (3, 3), strides=1, use_bias=True, padding='valid', activation='sigmoid', name="conv5")(x)
+        x = Conv2D(1, (3, 3), strides=1, use_bias=True, padding='same', activation='sigmoid', name="conv5")(x)
 
-        model = Model(img_input, x, name='Cartoon Discriminator')
+        model = Model(input_img, x, name='Cartoon_Discriminator')
 
         return model
 
     # vgg loss function
     def vgg_loss(self, y_true, y_pred):
         # get vgg model
-        input_shape=[self.image_size, self.image_size, 3]
+        input_shape=[self.image_size, self.image_size, self.image_channels]
         img_input = Input(shape=input_shape, name="vgg_input")
-        vggmodel = Model(inputs=VGG19.input, outputs=VGG19.get_layer('block4_conv4').output)
+        vgg19 = tf.keras.applications.vgg19.VGG19(weights='imagenet')
+        vggmodel = Model(inputs=vgg19.input, outputs=vgg19.get_layer('block4_conv4').output)
         x = vggmodel(img_input)
-        vgg = Model(img_input, x, name='VGG for Feature Extraction')
+        vgg = Model(img_input, x, name='VGG_for_Feature_Extraction')
 
         # get l1 loss for the content loss
         y_true = vgg(y_true)
@@ -118,13 +119,17 @@ class CartoonGAN():
     # compile each model
     def compile_model(self):
         # init summary writer for tensorboard
-        self.callback1 = TensorBoard(self.log_dir+'1')
-        self.callback2 = TensorBoard(self.log_dir+'2')
+        self.callback1 = TensorBoard(self.log_dir+'_discriminator')
+        self.callback2 = TensorBoard(self.log_dir+'_generator')
         
         # model stuff
-        input_shape=[self.image_size, self.image_size, 3]
-        adam1 = Adam(lr=0.0005)
-        adam2 = Adam(lr=0.0005)
+        input_shape=[self.image_size, self.image_size, self.image_channels]
+        adam1 = Adam(lr=self.lr)
+        adam2 = Adam(lr=self.lr)
+
+        # init
+        self.discriminator = self.discriminator()
+        self.generator = self.generator()
 
         # compile discriminator
         self.discriminator.compile(loss='binary_crossentropy',
@@ -136,7 +141,7 @@ class CartoonGAN():
         discriminator_output = self.discriminator(generated_catroon_tensor)
         self.train_generator = Model(input_tensor, outputs=[generated_catroon_tensor, discriminator_output])
         self.train_generator.compile(loss=[self.vgg_loss, 'binary_crossentropy'],
-                                             loss_weights=[10.0, 1.0],
+                                             loss_weights=[float(self.weight), 1.0],
                                              optimizer=adam2)
         
         # set callback model
@@ -146,14 +151,16 @@ class CartoonGAN():
     # method for training process
     def train(self, batch_generator):
         # these two tensors measure the output of generator and discriminator
-        real = np.ones((batch_generator.batch_size,) + (self.image_size,self.image_size,self.image_channels))
-        fake = np.zeros((batch_generator.batch_size,) + (self.image_size,self.image_size,self.image_channels))
+        real = np.ones((batch_generator.batch_size,) + (64, 64, 1))
+        fake = np.zeros((batch_generator.batch_size,) + (64 , 64, 1))
 
         # start training
         start_time = time.time()
         for i in range(self.epochs):
             print('Epoch {}'.format(i+1))
             for idx, (cartoon, smooth_cartoon, photo) in enumerate(batch_generator):
+                print('hh')
+                print(idx)
                 # train discriminator
                 generated_img = self.generator.predict(photo)
                 real = self.discriminator.train_on_batch(cartoon, real)

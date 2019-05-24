@@ -1,2 +1,5 @@
 *.h5
 dataset/
+__pycache__/
+log_discriminator/
+log_generator/

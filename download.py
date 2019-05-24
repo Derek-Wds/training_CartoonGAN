@@ -1,7 +1,15 @@
-import requests
+import requests, argparse
 from urllib import request
 from pprint import pprint
 from google_images_download import google_images_download 
+
+# argument parser
+def parse_args():
+    desc = "Download images"
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('--driver', type=str, default='chromedriver', help='chrome drvier location for the selenium')
+
+    return parser.parse_args()
 
 # grab photos from Pixabay
 class Pixabay:
@@ -29,7 +37,7 @@ class Pixabay:
 # function to dowload the cartoon images from google
 response = google_images_download.googleimagesdownload() 
 
-def downloadimages(query): 
+def downloadimages(query, args): 
     # keywords is the search query 
     # format is the image file format 
     # limit is the number of images to be downloaded 
@@ -44,8 +52,8 @@ def downloadimages(query):
                     "print_urls":True,
                     "size": "medium",
                     "aspect_ratio": "panoramic",
-                    "chromedriver":"/home/dingsu/chromedriver", # One needs to change this in order to make the selenium work
-                    "image_directory":"dataset/cartoon_imgs"}
+                    "chromedriver":args.driver,
+                    "image_directory":"../dataset/cartoon_imgs"}
     try: 
         response.download(arguments) 
     
@@ -56,8 +64,8 @@ def downloadimages(query):
                     "limit":100, 
                     "print_urls":True, 
                     "size": "medium",
-                    "chromedriver":'/home/dingsu/chromedriver', # One needs to change this in order to make the selenium work
-                    "image_directory":"dataset/cartoon_imgs"} 
+                    "chromedriver":args.driver,
+                    "image_directory":"../dataset/cartoon_imgs"} 
                     
         # Providing arguments for the searched query 
         try: 
@@ -69,18 +77,23 @@ def downloadimages(query):
 
 
 if __name__ == "__main__":
+    # parse arguments
+    args = parse_args()
+    if args is None:
+        exit()
+
     # creating object 
     print('==========================================================================')
     print('Downloading the studio ghibli cartoon images from google')
     print('==========================================================================')
 
     # Driver Code 
-    downloadimages("miyazaki spirited away wallpaper")
-    downloadimages("miyazaki my neighbor totoro wallpaper")
-    downloadimages("miyazaki howl's moving castle wallpaper")
-    downloadimages("miyazaki castle in the sky wallpaper")
-    downloadimages("miyazaki ponyo on the cliff wallpaper")
-    downloadimages("studio ghibli cartoon images")
+    downloadimages("miyazaki spirited away wallpaper", args)
+    downloadimages("miyazaki my neighbor totoro wallpaper", args)
+    downloadimages("miyazaki howl's moving castle wallpaper", args)
+    downloadimages("miyazaki castle in the sky wallpaper", args)
+    downloadimages("miyazaki ponyo on the cliff wallpaper", args)
+    downloadimages("studio ghibli cartoon images", args)
 
 
     print('==========================================================================')
