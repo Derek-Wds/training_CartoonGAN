@@ -26,9 +26,9 @@ class DataGenerator(Sequence):
 
     # the things to be returned at each batch
     def __getitem__(self, index):
-        photo_batch = self.photo_imgs[idx*self.batch_size: (idx+1)*self.batch_size]
-        cartoon_batch = self.cartoon_imgs[idx*self.batch_size: (idx+1)*self.batch_size]
-        smooth_cartoon_batch = self.smooth_cartoon_imgs[idx*self.batch_size: (idx+1)*self.batch_size]
+        photo_batch = self.photo_imgs[index*self.batch_size: (index+1)*self.batch_size]
+        cartoon_batch = self.cartoon_imgs[index*self.batch_size: (index+1)*self.batch_size]
+        smooth_cartoon_batch = self.smooth_cartoon_imgs[index*self.batch_size: (index+1)*self.batch_size]
 
         return load(photo_batch), load(cartoon_batch), load(smooth_cartoon_batch)
 
@@ -50,7 +50,7 @@ def preprocess(filename, size=256, channels=3):
     x_decode = tf.image.decode_jpeg(x, channels=channels)
     img = tf.image.resize_images(x_decode, [size, size])
     img = tf.cast(img, tf.float32) / 127.5 - 1
-
+    
     return img.eval()
 
 # instance normalization implementation in keras

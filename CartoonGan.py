@@ -158,9 +158,7 @@ class CartoonGAN():
         start_time = time.time()
         for i in range(self.epochs):
             print('Epoch {}'.format(i+1))
-            for idx, (cartoon, smooth_cartoon, photo) in enumerate(batch_generator):
-                print('hh')
-                print(idx)
+            for idx, (photo, cartoon, smooth_cartoon) in enumerate(batch_generator):
                 # train discriminator
                 generated_img = self.generator.predict(photo)
                 real = self.discriminator.train_on_batch(cartoon, real)

@@ -24,12 +24,14 @@ def parse_args():
 def main():
     args = parse_args()
 
-    batch_generator = DataGenerator(img_size=args.image_size, batch_size=args.batch_size)
-    cartoongan = CartoonGAN(args)
+    sess = tf.Session()
+    with sess.as_default():
+        batch_generator = DataGenerator(img_size=args.image_size, batch_size=args.batch_size)
+        cartoongan = CartoonGAN(args)
 
-    # train model
-    cartoongan.compile_model()
-    cartoongan.train(batch_generator)
+        # train model
+        cartoongan.compile_model()
+        cartoongan.train(batch_generator)
 
 
 if __name__ == '__main__':
