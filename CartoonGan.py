@@ -156,8 +156,8 @@ class CartoonGAN():
 
         # start training
         start_time = time.time()
-        for i in range(self.epochs):
-            print('Epoch {}'.format(i+1))
+        for epoch in range(self.epochs):
+            print('Epoch {}'.format(epoch+1))
             for idx, (photo, cartoon, smooth_cartoon) in enumerate(batch_generator):
                 # train discriminator
                 generated_img = self.generator.predict(photo)
@@ -171,11 +171,11 @@ class CartoonGAN():
                 print("Batch %d, d_loss: %.5f, g_loss: %.5f, with time: %4.4f" % (idx, d_loss, g_loss, time.time()-start_time))
 
                 # add losses to writer
-                write_log(self.callback1, 'd_loss', d_loss, idx)
-                write_log(self.callback2, 'g_loss', g_loss, idx)
+                write_log(self.callback1, 'd_loss', d_loss, idx + (epoch+1)*len(batch_generator))
+                write_log(self.callback2, 'g_loss', g_loss, idx + (epoch+1)*len(batch_generator))
 
                 # change learning rate 
-                if idx % 500 == 0 and self.discriminator.optimizer.lr > 0.0001:
+                if epoch % 100 == 0 and self.discriminator.optimizer.lr > 0.0001:
                     K.set_value(self.discriminator.optimizer.lr, self.discriminator.optimizer.lr*0.95)
                     K.set_value(self.train_generator.optimizer.lr, self.train_generator.optimizer.lr*0.95)
         

@@ -11,7 +11,7 @@ def parse_args():
     desc = "Keras implementation of CartoonGAN"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--batch_size', type=int, default=32, help='batch size for the training')
-    parser.add_argument('--epochs', type=int, default=200, help='epoch size for the training')
+    parser.add_argument('--epochs', type=int, default=2000, help='epoch size for the training')
     parser.add_argument('--image_channels', type=int, default=3, help='image channels')
     parser.add_argument('--image_size', type=int, default=256, help='image size for the model input')
     parser.add_argument('--log_dir', type=str, default='log', help='train or test ?')
