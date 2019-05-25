@@ -48,7 +48,7 @@ def downloadimages(query, args):
     # of images to download. ("tall, square, wide, panoramic") 
     arguments = {"keywords":query,
                     "format": "jpg",
-                    "limit":100,
+                    "limit":120,
                     "print_urls":True,
                     "size": "medium",
                     "aspect_ratio": "panoramic",
@@ -61,7 +61,7 @@ def downloadimages(query, args):
     except FileNotFoundError: 
         arguments = {"keywords": query, 
                     "format": "jpg", 
-                    "limit":100, 
+                    "limit":120, 
                     "print_urls":True, 
                     "size": "medium",
                     "chromedriver":args.driver,
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     key = "7429820-c0f17225d11abf9ffe919ad24"
     p = Pixabay(key)
 
-    for i in range(100):
+    for i in range(5):
         res = p.search()
         print('Downloading round {} images!'.format(i+1))
         for img in res:
