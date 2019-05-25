@@ -1,15 +1,7 @@
 import requests, argparse
-from urllib import request
-from pprint import pprint
-from google_images_download import google_images_download 
-
-# argument parser
-def parse_args():
-    desc = "Download images"
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument('--driver', type=str, default='chromedriver', help='chrome drvier location for the selenium')
-
-    return parser.parse_args()
+import os
+import shutil
+from PIL import Image
 
 # grab photos from Pixabay
 class Pixabay:
@@ -34,70 +26,45 @@ class Pixabay:
             self.params['query'] = query
 
 
-# function to dowload the cartoon images from google
-response = google_images_download.googleimagesdownload() 
+def main():
 
-def downloadimages(query, args): 
-    # keywords is the search query 
-    # format is the image file format 
-    # limit is the number of images to be downloaded 
-    # print urs is to print the image file url 
-    # size is the image size which can 
-    # be specified manually ("large, medium, icon") 
-    # aspect ratio denotes the height width ratio 
-    # of images to download. ("tall, square, wide, panoramic") 
-    arguments = {"keywords":query,
-                    "format": "jpg",
-                    "limit":120,
-                    "print_urls":True,
-                    "size": "medium",
-                    "aspect_ratio": "panoramic",
-                    "chromedriver":args.driver,
-                    "image_directory":"../dataset/cartoon_imgs"}
-    try: 
-        response.download(arguments) 
+    DEFAULT_SIZE = (256, 256)
+
+    print('==========================================================================')
+    print('Check if source video exists.')
+    print('==========================================================================')
+    if(not os.path.isdir('video')):
+        print('Be sure to include video files inside video folder')
+        raise Exception("No Video")
+
+    print('==========================================================================')
+    print('Create dataset folder.')
+    print('==========================================================================')
+
+    if (os.path.isdir('dataset')):
+        print("Clear previous dataset")
+        shutil.rmtree('dataset')
     
-    # Handling File NotFound Error	 
-    except FileNotFoundError: 
-        arguments = {"keywords": query, 
-                    "format": "jpg", 
-                    "limit":120, 
-                    "print_urls":True, 
-                    "size": "medium",
-                    "chromedriver":args.driver,
-                    "image_directory":"../dataset/cartoon_imgs"} 
-                    
-        # Providing arguments for the searched query 
-        try: 
-            # Downloading the photos based 
-            # on the given arguments 
-            response.download(arguments) 
-        except: 
-            pass
-
-
-if __name__ == "__main__":
-    # parse arguments
-    args = parse_args()
-    if args is None:
-        exit()
-
-    # creating object 
-    print('==========================================================================')
-    print('Downloading the studio ghibli cartoon images from google')
-    print('==========================================================================')
-
-    # Driver Code 
-    downloadimages("miyazaki spirited away wallpaper", args)
-    downloadimages("miyazaki my neighbor totoro wallpaper", args)
-    downloadimages("miyazaki howl's moving castle wallpaper", args)
-    downloadimages("miyazaki castle in the sky wallpaper", args)
-    downloadimages("miyazaki ponyo on the cliff wallpaper", args)
-    downloadimages("studio ghibli cartoon images", args)
+    print('Creating folders')
+    os.mkdir('dataset')
+    os.mkdir('dataset/photo_imgs')
+    os.mkdir('dataset/cartoon_imgs')
+    os.mkdir('dataset/smooth_cartoon_imgs')
 
 
     print('==========================================================================')
-    print('Cartoon images download completed!')
+    print('Cartoon images process started!')
+    print('==========================================================================')
+
+    files = ['video/'+f for f in os.listdir('video') if os.path.isfile('video/'+f)]
+    file_counter = 0
+    for video_file in files:
+        command = 'ffmpeg -i "{}" -start_number 0 -ss 00:00:30 -vf fps=1 -s 256x256 "dataset/cartoon_imgs/${}-%05d.500.png"'.format(video_file, file_counter)
+        os.system(command)
+
+
+    print('==========================================================================')
+    print('Cartoon images process completed!')
     print('==========================================================================')
 
 
@@ -119,10 +86,14 @@ if __name__ == "__main__":
         for img in res:
             img_req = requests.get(img)
             if img_req.status_code == 200:
-                with open("./dataset/photo_imgs/"+str(counter)+'.jpg', 'wb') as f:
+                file_name = "./dataset/photo_imgs/"+str(counter)+'.jpg'
+                with open(file_name, 'wb') as f:
                     f.write(img_req.content) 
-                    counter += 1
+                    img = Image.open(file_name)
+                    img = img.resize(DEFAULT_SIZE)
+                    img.save(file_name)
                     print(str(counter) + ".jpg" + ' has been saved!')
+                    counter += 1
 
     print('==========================================================================')
     print('Photos download completed!')
@@ -132,3 +103,6 @@ if __name__ == "__main__":
     print()
     print("ATTENTION! Please remember to move the photos to 'dataset' folder and creat 3 sub folders in it:" + \
     " 'cartoon_imgs' and 'smooth_cartoon_imgs'")
+
+if __name__ == "__main__":
+    main()
