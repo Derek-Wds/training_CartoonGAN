@@ -178,8 +178,8 @@ class CartoonGAN():
 
                 # change learning rate 
                 if epoch % 100 == 0 and self.discriminator.optimizer.lr > 0.0001:
-                    K.set_value(self.discriminator.optimizer.lr, self.discriminator.optimizer.lr*0.95)
-                    K.set_value(self.train_generator.optimizer.lr, self.train_generator.optimizer.lr*0.95)
+                    K.set_value(self.discriminator.optimizer.lr, K.eval(self.discriminator.optimizer.lr)*0.95)
+                    K.set_value(self.train_generator.optimizer.lr, K.eval(self.train_generator.optimizer.lr)*0.95)
         
         print('Done!')
         self.generator.save('CartoonGan_generator.h5')

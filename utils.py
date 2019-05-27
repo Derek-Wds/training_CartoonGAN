@@ -29,7 +29,7 @@ class DataGenerator(Sequence):
         photo_batch = self.photo_imgs[index*self.batch_size: (index+1)*self.batch_size]
         cartoon_batch = self.cartoon_imgs[index*self.batch_size: (index+1)*self.batch_size]
         smooth_cartoon_batch = self.smooth_cartoon_imgs[index*self.batch_size: (index+1)*self.batch_size]
-
+        
         return load(photo_batch), load(cartoon_batch), load(smooth_cartoon_batch)
 
     # shuffle at the epoch's end
