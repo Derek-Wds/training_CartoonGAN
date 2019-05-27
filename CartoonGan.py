@@ -161,14 +161,16 @@ class CartoonGAN():
             for idx, (photo, cartoon, smooth_cartoon) in enumerate(batch_generator):
                 # train discriminator
                 generated_img = self.generator.predict(photo)
-                real = self.discriminator.train_on_batch(cartoon, real)
-                smooth = self.discriminator.train_on_batch(smooth_cartoon, fake)
-                fake = self.discriminator.train_on_batch(generated_img, fake)
-                d_loss = (real + smooth + fake) / 3
+                real_loss = self.discriminator.train_on_batch(cartoon, real)
+                smooth_loss = self.discriminator.train_on_batch(smooth_cartoon, fake)
+                fake_loss = self.discriminator.train_on_batch(generated_img, fake)
+                d_loss = (real_loss + smooth_loss + fake_loss) / 3
 
                 # train generator
-                g_loss = self.train_generator.train_on_batch(photo,[photo, real])
+                print(real.shape)
+                g_loss = self.train_generator.train_on_batch(photo, [photo, real])
                 print("Batch %d, d_loss: %.5f, g_loss: %.5f, with time: %4.4f" % (idx, d_loss, g_loss, time.time()-start_time))
+                start_time = time.time()
 
                 # add losses to writer
                 write_log(self.callback1, 'd_loss', d_loss, idx + (epoch+1)*len(batch_generator))

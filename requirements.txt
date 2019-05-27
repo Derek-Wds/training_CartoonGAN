@@ -1,5 +1,5 @@
 keras==2.2.2
-google_images_download==2.8.0
+pillow==5.4.1
 numpy==1.15.1
 opencv-python==3.2.0
 tensorflow==1.13.1
