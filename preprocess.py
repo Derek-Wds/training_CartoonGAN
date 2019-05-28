@@ -23,8 +23,7 @@ def preprocess(path, size=256, channels=3):
             img = tf.cast(img, tf.float32) / 127.5 - 1
 
             # save the preprocessed image
-            np.save(os.path.join(save_path, file_name.rstrip()), img.eval())
-
+            np.save(os.path.join(save_path, file_name), img.eval())
 
 if __name__ == "__main__":
     # make folders

@@ -1,4 +1,4 @@
-import time
+import time, random
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.models import Model
@@ -124,7 +124,7 @@ class CartoonGAN():
         
         # model stuff
         input_shape=[self.image_size, self.image_size, self.image_channels]
-        adam1 = Adam(lr=self.lr)
+        adam1 = Adam(lr=self.lr*5)
         adam2 = Adam(lr=self.lr)
 
         # init
@@ -159,6 +159,10 @@ class CartoonGAN():
         for epoch in range(self.epochs):
             print('Epoch {}'.format(epoch+1))
             for idx, (photo, cartoon, smooth_cartoon) in enumerate(batch_generator):
+                # make soft and noise labels
+                real = real + random.uniform(-0.2, 0.2)
+                fake = fake + random.uniform(0, 0.2)
+
                 # train discriminator
                 generated_img = self.generator.predict(photo)
                 real_loss = self.discriminator.train_on_batch(cartoon, real)
@@ -178,6 +182,7 @@ class CartoonGAN():
                 # change learning rate 
                 if epoch % 100 == 0 and K.eval(self.discriminator.optimizer.lr) > 0.0001:
                     K.set_value(self.discriminator.optimizer.lr, K.eval(self.discriminator.optimizer.lr)*0.95)
+                if epoch % 100 == 0 and K.eval(self.train_generator.optimizer.lr) > 0.0001:
                     K.set_value(self.train_generator.optimizer.lr, K.eval(self.train_generator.optimizer.lr)*0.95)
         
         print('Done!')
