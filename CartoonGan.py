@@ -167,7 +167,6 @@ class CartoonGAN():
                 d_loss = (real_loss + smooth_loss + fake_loss) / 3
 
                 # train generator
-                print(real.shape)
                 g_loss = self.train_generator.train_on_batch(photo, [photo, real])
                 print("Batch %d, d_loss: %.5f, g_loss: %.5f, with time: %4.4f" % (idx, d_loss, g_loss, time.time()-start_time))
                 start_time = time.time()
@@ -177,7 +176,7 @@ class CartoonGAN():
                 write_log(self.callback2, 'g_loss', g_loss, idx + (epoch+1)*len(batch_generator))
 
                 # change learning rate 
-                if epoch % 100 == 0 and self.discriminator.optimizer.lr > 0.0001:
+                if epoch % 100 == 0 and K.eval(self.discriminator.optimizer.lr) > 0.0001:
                     K.set_value(self.discriminator.optimizer.lr, K.eval(self.discriminator.optimizer.lr)*0.95)
                     K.set_value(self.train_generator.optimizer.lr, K.eval(self.train_generator.optimizer.lr)*0.95)
         

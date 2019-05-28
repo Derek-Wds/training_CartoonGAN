@@ -11,9 +11,9 @@ from tensorflow.python.keras.utils import Sequence
 # data generator to get batches of data
 class DataGenerator(Sequence):
     def __init__(self, img_size=256, batch_size=32, shuffle=True):
-        self.photo_imgs = glob.glob("dataset/photo_imgs/*.*")
-        self.cartoon_imgs = glob.glob("dataset/cartoon_imgs/*.*")
-        self.smooth_cartoon_imgs = glob.glob("dataset/smooth_cartoon_imgs/*.*")
+        self.photo_imgs = glob.glob("dataset/photo_imgs_npy/*.*")
+        self.cartoon_imgs = glob.glob("dataset/cartoon_imgs_npy/*.*")
+        self.smooth_cartoon_imgs = glob.glob("dataset/smooth_cartoon_imgs_npy/*.*")
         self.img_size = img_size
         self.batch_size = batch_size
         self.shuffle = shuffle
@@ -39,19 +39,10 @@ class DataGenerator(Sequence):
             np.random.shuffle(self.cartoon_imgs)
             np.random.shuffle(self.smooth_cartoon_imgs)
 
-# load image in the data generator
-def load(imgs):
-    ouput = np.array([preprocess(img) for img in imgs])
-    return ouput
-
-# preprocess image
-def preprocess(filename, size=256, channels=3):
-    x = tf.read_file(filename)
-    x_decode = tf.image.decode_jpeg(x, channels=channels)
-    img = tf.image.resize_images(x_decode, [size, size])
-    img = tf.cast(img, tf.float32) / 127.5 - 1
-    
-    return img.eval()
+# load numpy file
+def load(file_list):
+    output = np.array([np.load(img) for img in file_list])
+    return output
 
 # instance normalization implementation in keras
 '''

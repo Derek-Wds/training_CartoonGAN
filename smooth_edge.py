@@ -12,7 +12,7 @@ def smooth_edge(path, img_size=256):
     gauss = cv2.getGaussianKernel(kernel_size, 0)
     gauss = gauss * gauss.transpose(1, 0)
 
-    for f in tqdm(file_list) :
+    for f in tqdm(file_list):
         file_name = os.path.basename(f)
 
         # deal with rgb images

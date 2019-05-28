@@ -44,6 +44,13 @@ The dataset folder structure is as followed:
       └── ...
 ```
 
+After making the dataset, now should use folllowing command to preprocess the images in order to feed them into the model. This step will create corresponding folders for the numpy files.
+
+```bash
+python preprocess.py
+```
+
+
 ### 3) Train
 
 Run:
