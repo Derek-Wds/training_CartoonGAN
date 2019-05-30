@@ -25,9 +25,9 @@ class CartoonGAN():
         input_img = Input(shape=input_shape, name="input")
 
         # first block
-        x = ReflectionPadding2D(3)(input_img)
+        x = ZeroPadding2D(3)(input_img)
         x = Conv2D(64, (7, 7), strides=1, use_bias=True, padding='valid', name="conv1")(x)
-        x = InstanceNormalization(name="norm1")(x)
+        x = BatchNormalization(name="norm1")(x)
         x = Activation("relu")(x)
 
         # down-convolution
@@ -35,20 +35,20 @@ class CartoonGAN():
         for i in range(2):
             x = Conv2D(channel, (3, 3), strides=2, use_bias=True, padding='same', name="conv{}_1".format(i+2))(x)
             x = Conv2D(channel, (3, 3), strides=1, use_bias=True, padding='same', name="conv{}_2".format(i+2))(x)
-            x = InstanceNormalization(name="norm{}".format(i+2))(x)
+            x = BatchNormalization(name="norm{}".format(i+2))(x)
             x = Activation("relu")(x)
             channel = channel * 2
         
         # residual blocks
         x_res = x
         for i in range(8):
-            x = ReflectionPadding2D(1)(x)
+            x = ZeroPadding2D(1)(x)
             x = Conv2D(256, (3, 3), strides=1, use_bias=True, padding='valid', name="conv{}_1".format(i+4))(x)
-            x = InstanceNormalization(name="norm{}_1".format(i+4))(x)
+            x = BatchNormalization(name="norm{}_1".format(i+4))(x)
             x = Activation("relu")(x)
-            x = ReflectionPadding2D(1)(x)
+            x = ZeroPadding2D(1)(x)
             x = Conv2D(256, (3, 3), strides=1, use_bias=True, padding='valid', name="conv{}_2".format(i+4))(x)
-            x = InstanceNormalization(name="norm{}_2".format(i+4))(x)
+            x = BatchNormalization(name="norm{}_2".format(i+4))(x)
             x = Add()([x, x_res])
             x_res = x
 
@@ -56,12 +56,12 @@ class CartoonGAN():
         for i in range(2):
             x = Conv2DTranspose(channel//2, 3, 2, padding="same", name="deconv{}_1".format(i+1))(x)
             x = Conv2D(channel//2, (3, 3), strides=1, use_bias=True, padding="same", name="deconv{}_2".format(i+1))(x)
-            x = InstanceNormalization(name="norm_deconv"+str(i+1))(x)
+            x = BatchNormalization(name="norm_deconv"+str(i+1))(x)
             x = Activation("relu")(x)
             channel = channel // 2
 
         # last block
-        x = ReflectionPadding(3)(x)
+        x = ZeroPadding2D(3)(x)
         x = Conv2D(3, (7, 7), strides=1, use_bias=True, padding="valid", name="deconv3")(x)
         x = Activation("tanh")(x)
         
@@ -84,13 +84,13 @@ class CartoonGAN():
             x = Conv2D(channel, (3, 3), strides=2, use_bias=True, padding='same', name="conv{}_1".format(i+2))(x)
             x = LeakyReLU(alpha=0.2)(x)
             x = Conv2D(channel*2, (3, 3), strides=1, use_bias=True, padding='same', name="conv{}_2".format(i+2))(x)
-            x = InstanceNormalization()(x)
+            x = BatchNormalization()(x)
             x = LeakyReLU(alpha=0.2)(x)
             channel = channel * 2
 
         # last block
         x = Conv2D(256, (3, 3), strides=1, use_bias=True, padding='same', name="conv4")(x)
-        x = InstanceNormalization()(x)
+        x = BatchNormalization()(x)
         x = LeakyReLU(alpha=0.2)(x)
         
         x = Conv2D(1, (3, 3), strides=1, use_bias=True, padding='same', activation='sigmoid', name="conv5")(x)
