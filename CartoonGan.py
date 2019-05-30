@@ -25,7 +25,7 @@ class CartoonGAN():
         input_img = Input(shape=input_shape, name="input")
 
         # first block
-        x = Lambda(lambda t: tf.pad(t, [[0,0], [3,3], [3,3], [0,0]], 'REFLECT'))(input_img)
+        x = ReflectionPadding2D(3)(input_img)
         x = Conv2D(64, (7, 7), strides=1, use_bias=True, padding='valid', name="conv1")(x)
         x = InstanceNormalization(name="norm1")(x)
         x = Activation("relu")(x)
@@ -42,11 +42,11 @@ class CartoonGAN():
         # residual blocks
         x_res = x
         for i in range(8):
-            x = Lambda(lambda t: tf.pad(t, [[0,0], [1,1], [1,1], [0,0]], 'REFLECT'))(x)
+            x = ReflectionPadding2D(1)(x)
             x = Conv2D(256, (3, 3), strides=1, use_bias=True, padding='valid', name="conv{}_1".format(i+4))(x)
             x = InstanceNormalization(name="norm{}_1".format(i+4))(x)
             x = Activation("relu")(x)
-            x = Lambda(lambda t: tf.pad(t, [[0,0], [1,1], [1,1], [0,0]], 'REFLECT'))(x)
+            x = ReflectionPadding2D(1)(x)
             x = Conv2D(256, (3, 3), strides=1, use_bias=True, padding='valid', name="conv{}_2".format(i+4))(x)
             x = InstanceNormalization(name="norm{}_2".format(i+4))(x)
             x = Add()([x, x_res])
@@ -61,7 +61,7 @@ class CartoonGAN():
             channel = channel // 2
 
         # last block
-        x = Lambda(lambda t: tf.pad(t, [[0,0], [3,3], [3,3], [0,0]], 'REFLECT'))(x)
+        x = ReflectionPadding(3)(x)
         x = Conv2D(3, (7, 7), strides=1, use_bias=True, padding="valid", name="deconv3")(x)
         x = Activation("tanh")(x)
         

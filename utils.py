@@ -6,6 +6,8 @@ from tensorflow.python.keras import initializers, regularizers, constraints
 from tensorflow.python.keras.preprocessing.image import load_img, save_img, img_to_array
 from tensorflow.python.keras.applications.imagenet_utils import preprocess_input
 from tensorflow.python.keras.layers import *
+from tensorflow.python.keras.engine import InputSpec
+from tensorflow.python.keras.engine.base_layer import Layer
 from tensorflow.python.keras.utils import Sequence
 
 # data generator to get batches of data
@@ -43,6 +45,40 @@ class DataGenerator(Sequence):
 def load(file_list):
     output = np.array([np.load(img) for img in file_list])
     return output
+
+# reflection 2d padding function
+def spatial_reflection_2d_padding(x, padding=((1, 1), (1, 1))):
+    pattern = [[0, 0], list(padding[0]), list(padding[1]), [0, 0]]
+    return tf.pad(x, pattern, "REFLECT")
+
+# ReflectionPadding class
+class ReflectionPadding2D(Layer):
+    def __init__(self,
+                 padding=(1, 1),
+                 **kwargs):
+        super(ReflectionPadding2D, self).__init__(**kwargs)
+        if isinstance(padding, int):
+            self.padding = ((padding, padding), (padding, padding))
+        self.input_spec = InputSpec(ndim=4)
+
+    def compute_output_shape(self, input_shape):
+        if input_shape[1] is not None:
+            rows = input_shape[1] + self.padding[0][0] + self.padding[0][1]
+        else:
+            rows = None
+        if input_shape[2] is not None:
+            cols = input_shape[2] + self.padding[1][0] + self.padding[1][1]
+        else:
+            cols = None
+        return (input_shape[0], rows, cols, input_shape[3])
+
+    def call(self, inputs):
+        return spatial_reflection_2d_padding(inputs, padding=self.padding)
+
+    def get_config(self):
+        config = {'padding': self.padding}
+        base_config = super(ReflectionPadding2D, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
 
 # instance normalization implementation in keras
 '''
