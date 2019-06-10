@@ -61,7 +61,7 @@ class CartoonGAN():
             channel = channel // 2
 
         # last block
-        x = ReflectionPadding(3)(x)
+        x = ReflectionPadding2D(3)(x)
         x = Conv2D(3, (7, 7), strides=1, use_bias=True, padding="valid", name="deconv3")(x)
         x = Activation("tanh")(x)
         
@@ -124,7 +124,7 @@ class CartoonGAN():
         
         # model stuff
         input_shape=[self.image_size, self.image_size, self.image_channels]
-        adam1 = Adam(lr=self.lr*5)
+        adam1 = Adam(lr=self.lr*2)
         adam2 = Adam(lr=self.lr)
 
         # init
