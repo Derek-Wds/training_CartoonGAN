@@ -1,4 +1,4 @@
-import cv2, glob
+import glob
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
@@ -12,11 +12,11 @@ from tensorflow.python.keras.utils import Sequence
 
 # data generator to get batches of data
 class DataGenerator(Sequence):
-    def __init__(self, img_size=256, batch_size=32, shuffle=True):
+    def __init__(self, image_size=256, batch_size=32, shuffle=True):
         self.photo_imgs = glob.glob("dataset/photo_imgs_npy/*.*")
         self.cartoon_imgs = glob.glob("dataset/cartoon_imgs_npy/*.*")
         self.smooth_cartoon_imgs = glob.glob("dataset/smooth_cartoon_imgs_npy/*.*")
-        self.img_size = img_size
+        self.image_size = image_size
         self.batch_size = batch_size
         self.shuffle = shuffle
         self.on_epoch_end()
@@ -32,7 +32,7 @@ class DataGenerator(Sequence):
         cartoon_batch = self.cartoon_imgs[index*self.batch_size: (index+1)*self.batch_size]
         smooth_cartoon_batch = self.smooth_cartoon_imgs[index*self.batch_size: (index+1)*self.batch_size]
         
-        return load(photo_batch), load(cartoon_batch), load(smooth_cartoon_batch)
+        return load(photo_batch), load(cartoon_batch), load(smooth_cartoon_batch), index
 
     # shuffle at the epoch's end
     def on_epoch_end(self):

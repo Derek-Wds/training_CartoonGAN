@@ -124,8 +124,8 @@ class CartoonGAN():
         
         # model stuff
         input_shape=[self.image_size, self.image_size, self.image_channels]
-        adam1 = Adam(lr=self.lr*2)
-        adam2 = Adam(lr=self.lr)
+        adam1 = Adam(lr=self.lr)
+        adam2 = Adam(lr=self.lr*2)
 
         # init
         self.discriminator = self.discriminator()
@@ -149,22 +149,31 @@ class CartoonGAN():
         self.callback2.set_model(self.train_generator)
 
     # method for training process
-    def train(self, batch_generator):
+    def train(self):
         # these two tensors measure the output of generator and discriminator
-        real = np.ones((batch_generator.batch_size,) + (64, 64, 1))
-        fake = np.zeros((batch_generator.batch_size,) + (64 , 64, 1))
+        real = np.ones((self.batch_size,) + (64, 64, 1))
+        fake = np.zeros((self.batch_size,) + (64 , 64, 1))
 
         # start training
         start_time = time.time()
         for epoch in range(self.epochs):
-            print('Epoch {}'.format(epoch+1))
-            for idx, (photo, cartoon, smooth_cartoon) in enumerate(batch_generator):
-                # make soft and noise labels
-                real = real + random.uniform(-0.2, 0.2)
-                fake = fake + random.uniform(0, 0.2)
 
-                # train discriminator
+            # create batch generator at each epoch
+            batch_generator = DataGenerator(image_size=self.image_size, batch_size=self.batch_size)
+            batch_end = len(batch_generator)
+            print('Epoch {}'.format(epoch+1))
+
+            # start training for each batch
+            for idx, (photo, cartoon, smooth_cartoon, index) in enumerate(batch_generator):
+
+                # check if it is the end of an epoch
+                if index + 1 == batch_end:
+                    break
+
+                # generate cartoonized images
                 generated_img = self.generator.predict(photo)
+
+                # train discriminator and adversarial loss
                 real_loss = self.discriminator.train_on_batch(cartoon, real)
                 smooth_loss = self.discriminator.train_on_batch(smooth_cartoon, fake)
                 fake_loss = self.discriminator.train_on_batch(generated_img, fake)
@@ -172,7 +181,7 @@ class CartoonGAN():
 
                 # train generator
                 g_loss = self.train_generator.train_on_batch(photo, [photo, real])
-                print("Batch %d, d_loss: %.5f, g_loss: %.5f, with time: %4.4f" % (idx, d_loss, g_loss, time.time()-start_time))
+                print("Batch %d, d_loss: %.5f, g_loss: %.5f, with time: %4.4f" % (idx, d_loss, g_loss[2], time.time()-start_time))
                 start_time = time.time()
 
                 # add losses to writer
