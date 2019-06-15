@@ -1,5 +1,6 @@
 *.h5
 dataset/
+video/
 __pycache__/
 log_discriminator/
 log_generator/
