@@ -5,6 +5,7 @@ from tensorflow.python.keras.models import Model
 from tensorflow.python.keras.layers import *
 from tensorflow.python.keras.optimizers import *
 from tensorflow.python.keras.callbacks import TensorBoard
+from tensorflow.python.keras.utils import multi_gpu_model
 from utils import *
 
 # class for CartoonGAN
@@ -13,6 +14,7 @@ class CartoonGAN():
         self.model_name = 'CartoonGAN'
         self.batch_size = args.batch_size
         self.epochs = args.epochs
+        self.gpu = args.gpu_num
         self.image_channels = args.image_channels
         self.image_size = args.image_size
         self.log_dir = args.log_dir
@@ -127,9 +129,15 @@ class CartoonGAN():
         adam1 = Adam(lr=self.lr)
         adam2 = Adam(lr=self.lr*2)
 
-        # init
-        self.discriminator = self.discriminator()
-        self.generator = self.generator()
+        # init and add multi-gpu support
+        try:
+            self.discriminator = multi_gpu_model(self.discriminator(), gpus=self.gpu)
+        except:
+            self.discriminator = self.discriminator()
+        try:
+            self.generator = multi_gpu_model(self.generator(), gpus=self.gpu)
+        except:
+            self.generator = self.generator()
 
         # compile discriminator
         self.discriminator.compile(loss='binary_crossentropy',
@@ -140,6 +148,11 @@ class CartoonGAN():
         generated_catroon_tensor = self.generator(input_tensor)
         discriminator_output = self.discriminator(generated_catroon_tensor)
         self.train_generator = Model(input_tensor, outputs=[generated_catroon_tensor, discriminator_output])
+        # add multi-gpu support
+        try:
+            self.train_generator = multi_gpu_model(self.train_generator, gpus=self.gpu)
+        except:
+            pass
         self.train_generator.compile(loss=[self.vgg_loss, 'binary_crossentropy'],
                                              loss_weights=[float(self.weight), 1.0],
                                              optimizer=adam2)
