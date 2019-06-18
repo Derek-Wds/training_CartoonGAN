@@ -1,4 +1,4 @@
-import glob
+import glob, random
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
@@ -37,8 +37,11 @@ class DataGenerator(Sequence):
     # shuffle at the epoch's end
     def on_epoch_end(self):
         if self.shuffle == True:
+            seed = random.randint(1, 6666)
+            np.random.seed(seed) # set seed for cartoon images
             np.random.shuffle(self.photo_imgs)
             np.random.shuffle(self.cartoon_imgs)
+            np.random.seed(seed) # make sure smoothed cartoon images are the same
             np.random.shuffle(self.smooth_cartoon_imgs)
 
 # load numpy file
