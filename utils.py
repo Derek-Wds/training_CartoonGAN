@@ -49,11 +49,6 @@ def load(file_list):
     output = np.array([np.load(img) for img in file_list])
     return output
 
-# reflection 2d padding function
-def spatial_reflection_2d_padding(x, padding=((1, 1), (1, 1))):
-    pattern = [[0, 0], list(padding[0]), list(padding[1]), [0, 0]]
-    return tf.pad(x, pattern, "REFLECT")
-
 # ReflectionPadding class
 class ReflectionPadding2D(Layer):
     def __init__(self,
@@ -62,6 +57,8 @@ class ReflectionPadding2D(Layer):
         super(ReflectionPadding2D, self).__init__(**kwargs)
         if isinstance(padding, int):
             self.padding = ((padding, padding), (padding, padding))
+        else:
+            self.padding = ((1, 1), (1, 1))
         self.input_spec = InputSpec(ndim=4)
 
     def compute_output_shape(self, input_shape):
@@ -76,7 +73,8 @@ class ReflectionPadding2D(Layer):
         return (input_shape[0], rows, cols, input_shape[3])
 
     def call(self, inputs):
-        return spatial_reflection_2d_padding(inputs, padding=self.padding)
+        pattern = [[0, 0], list(self.padding[0]), list(self.padding[1]), [0, 0]]
+        return tf.pad(inputs, pattern, "REFLECT")
 
     def get_config(self):
         config = {'padding': self.padding}

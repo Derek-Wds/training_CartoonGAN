@@ -121,8 +121,8 @@ class CartoonGAN():
     # compile each model
     def compile_model(self):
         # init summary writer for tensorboard
-        self.callback1 = TensorBoard(self.log_dir+'_discriminator')
-        self.callback2 = TensorBoard(self.log_dir+'_generator')
+        self.callback1 = TensorBoard(self.log_dir+'/discriminator')
+        self.callback2 = TensorBoard(self.log_dir+'/generator')
         
         # model stuff
         input_shape=[self.image_size, self.image_size, self.image_channels]
@@ -202,9 +202,9 @@ class CartoonGAN():
                 write_log(self.callback2, 'g_loss', g_loss, idx + (epoch+1)*len(batch_generator))
 
                 # change learning rate 
-                if epoch % 100 == 0 and K.eval(self.discriminator.optimizer.lr) > 0.0001:
+                if epoch % 10 == 0 and K.eval(self.discriminator.optimizer.lr) > 0.0001:
                     K.set_value(self.discriminator.optimizer.lr, K.eval(self.discriminator.optimizer.lr)*0.95)
-                if epoch % 100 == 0 and K.eval(self.train_generator.optimizer.lr) > 0.0001:
+                if epoch % 10 == 0 and K.eval(self.train_generator.optimizer.lr) > 0.0001:
                     K.set_value(self.train_generator.optimizer.lr, K.eval(self.train_generator.optimizer.lr)*0.95)
         
         print('Done!')
