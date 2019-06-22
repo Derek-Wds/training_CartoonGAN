@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import tensorflow as tf
 import matplotlib.pyplot as plt
 from CartoonGan import CartoonGAN
 from tensorflow.python.keras.models import load_model
@@ -15,20 +16,25 @@ def postprocess(img):
 custom = {'InstanceNormalization': InstanceNormalization, 'ReflectionPadding2D': ReflectionPadding2D}
 generator = load_model('CartoonGan_generator.h5', custom_objects=custom)
 test_img = np.load('dataset/photo_imgs_npy/0.npy')
-test_out = generator(test_img)
+test_in = test_img.reshape(1, test_img.shape[0], test_img.shape[1], test_img.shape[2])
+test_out = generator(test_in)
 
-# input photo
-fig, ax = plt.subplots()
-plt.subplot(1, 5, 1)
-plt.axis('off')
-plt.title("Input photo")
-plt.imshow(postprocess(test_img))
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    test_out = sess.run(test_out)
+    test_out = test_out.reshape(test_out.shape[1], test_out.shape[2], test_out.shape[3])
+    # input photo
+    fig, ax = plt.subplots()
+    plt.subplot(1, 5, 1)
+    plt.axis('off')
+    plt.title("Input photo")
+    plt.imshow(postprocess(test_img))
 
-# output cartoonized photo
-plt.subplot(1, 5, 2)
-plt.axis('off')
-plt.title("Output photo")
-plt.imshow(postprocess(test_out))
+    # output cartoonized photo
+    plt.subplot(1, 5, 2)
+    plt.axis('off')
+    plt.title("Output photo")
+    plt.imshow(postprocess(test_out))
 
-plt.tight_layout()
-plt.show()
+    plt.tight_layout()
+    plt.show()

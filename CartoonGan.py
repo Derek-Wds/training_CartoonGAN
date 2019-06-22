@@ -114,7 +114,7 @@ class CartoonGAN():
         # get l1 loss for the content loss
         y_true = vgg(y_true)
         y_pred = vgg(y_pred)
-        content_loss = tf.reduce_mean(tf.abs(y_true - y_pred))
+        content_loss = tf.losses.absolute_difference(y_true, y_pred)
 
         return content_loss
 
@@ -146,6 +146,7 @@ class CartoonGAN():
         # compile generator
         input_tensor = Input(shape=input_shape)
         generated_catroon_tensor = self.generator(input_tensor)
+        self.discriminator.trainable = False # for here we only train the generator
         discriminator_output = self.discriminator(generated_catroon_tensor)
         self.train_generator = Model(input_tensor, outputs=[generated_catroon_tensor, discriminator_output])
         # add multi-gpu support
