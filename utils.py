@@ -1,4 +1,5 @@
 import glob, random
+import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
@@ -9,6 +10,7 @@ from tensorflow.python.keras.layers import *
 from tensorflow.python.keras.engine import InputSpec
 from tensorflow.python.keras.engine.base_layer import Layer
 from tensorflow.python.keras.utils import Sequence
+from io import BytesIO
 
 # data generator to get batches of data
 class DataGenerator(Sequence):
@@ -192,5 +194,22 @@ def write_log(callback, name, value, batch):
     summary_value = summary.value.add()
     summary_value.simple_value = value
     summary_value.tag = name
+    callback.writer.add_summary(summary, batch)
+    callback.writer.flush()
+
+# function to write images to logs
+def write_images(callback, images, name, batch):
+    number = 0
+    img_summaries = []
+    for i in images:
+        s = BytesIO()
+        plt.imsave(s, i, format='png')
+        img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
+                                       height=i.shape[0],
+                                       width=i.shape[1])
+        img_summaries.append(tf.Summary.Value(tag='%s/%d' % (name, number),
+                                                 image=img_sum))
+        number += 1
+    summary = tf.Summary(value=img_summaries)
     callback.writer.add_summary(summary, batch)
     callback.writer.flush()
