@@ -203,6 +203,7 @@ def write_images(callback, images, name, batch):
     img_summaries = []
     for i in images:
         s = BytesIO()
+        i = i / 2 + 0.5
         plt.imsave(s, i, format='png')
         img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
                                        height=i.shape[0],

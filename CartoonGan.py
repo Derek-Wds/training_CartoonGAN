@@ -1,4 +1,5 @@
 import time, random
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.keras import backend as K
 from tensorflow.python.keras.models import Model
@@ -20,6 +21,7 @@ class CartoonGAN():
         self.init_epoch = args.init_epoch
         self.log_dir = args.log_dir
         self.lr = args.lr
+        self.model_dir = args.model_dir
         self.weight = args.weight
     
     # method for generator
@@ -57,7 +59,7 @@ class CartoonGAN():
 
         # up-convolution
         for i in range(2):
-            x = Conv2DTranspose(channel//2, 3, 2, padding="same", name="deconv{}_1".format(i+1))(x)
+            x = Conv2DTranspose(channel//2, 3, 2, padding="same", output_padding=1, name="deconv{}_1".format(i+1))(x)
             x = Conv2D(channel//2, (3, 3), strides=1, use_bias=True, padding="same", name="deconv{}_2".format(i+1))(x)
             x = InstanceNormalization(name="norm_deconv"+str(i+1))(x)
             x = Activation("relu")(x)
@@ -168,11 +170,9 @@ class CartoonGAN():
     # method for training process
     def train(self):
 
-        # these two tensors measure the output of generator and discriminator
-        real = np.ones((self.batch_size,) + (64, 64, 1))
-        fake = np.zeros((self.batch_size,) + (64 , 64, 1))
-
         # start training
+        flip = False
+        variance = 1 / 127.5
         start_time = time.time()
         for epoch in range(self.epochs):
 
@@ -183,6 +183,10 @@ class CartoonGAN():
 
             # start training for each batch
             for idx, (photo, cartoon, smooth_cartoon, index) in enumerate(batch_generator):
+
+                # these two tensors measure the output of generator and discriminator
+                real = np.ones((self.batch_size,) + (64, 64, 1))
+                fake = np.zeros((self.batch_size,) + (64 , 64, 1))
 
                 # check if it is the end of an epoch
                 if index + 1 == batch_end:
@@ -202,8 +206,27 @@ class CartoonGAN():
                         K.set_value(self.train_generator.optimizer.lr, K.eval(self.train_generator.optimizer.lr)*0.99)
 
                 else:
+                    
+                    # add noise to the input of discriminator
+                    if variance > 0.00001:
+                        variance = variance * 0.9999
+                        gaussian = np.random.normal(0, variance, (cartoon.shape[1],cartoon.shape[2]))
+                        cartoon[:, :, :, 0] = cartoon[:, :, :, 0] + gaussian
+                        cartoon[:, :, :, 1] = cartoon[:, :, :, 1] + gaussian
+                        cartoon[:, :, :, 2] = cartoon[:, :, :, 2] + gaussian
+                        gaussian = np.random.normal(0, variance, (cartoon.shape[1],cartoon.shape[2]))
+                        smooth_cartoon[:, :, :, 0] = smooth_cartoon[:, :, :, 0] + gaussian
+                        smooth_cartoon[:, :, :, 1] = smooth_cartoon[:, :, :, 1] + gaussian
+                        smooth_cartoon[:, :, :, 2] = smooth_cartoon[:, :, :, 2] + gaussian
+
                     # generate cartoonized images
                     generated_img = self.generator.predict(photo)
+
+                    # to certain probability: flip the label of discriminator
+                    if idx % 9 == 0 or np.random.uniform(0, 1) < 0.05:
+                        real = fake
+                        fake = fake + 1
+                        flip = True
 
                     # train discriminator and adversarial loss
                     real_loss = self.discriminator.train_on_batch(cartoon, real)
@@ -212,6 +235,11 @@ class CartoonGAN():
                     d_loss = (real_loss + smooth_loss + fake_loss) / 3
 
                     # train generator
+                    if flip:
+                        real = fake
+                        fake = fake - 1
+                        flip = False
+
                     g_loss = self.train_generator.train_on_batch(photo, [photo, real])
                     print("Batch %d, d_loss: %.5f, g_loss: %.5f, with time: %4.4f" % (idx, d_loss, g_loss[2], time.time()-start_time))
                     start_time = time.time()
@@ -230,9 +258,9 @@ class CartoonGAN():
                 
                 # save model
                 if epoch % 200 == 0:
-                    self.generator.save('CartoonGan_generator_epoch_{}.h5'.format(epoch))
-                    self.discriminator.save('CartoonGan_discriminator_epoch_{}.h5'.format(epoch))
-                    self.train_generator.save('CartoonGan_train_generator_epoch_{}.h5'.format(epoch))
+                    self.generator.save_weights(self.model_dir + '/' + 'CartoonGan_generator_epoch_{}.h5'.format(epoch))
+                    self.discriminator.save_weigths(self.model_dir + '/' + 'CartoonGan_discriminator_epoch_{}.h5'.format(epoch))
+                    self.train_generator.save_weights(self.model_dir + '/' + 'CartoonGan_train_generator_epoch_{}.h5'.format(epoch))
         
         print('Done!')
         self.generator.save('CartoonGan_generator.h5')
