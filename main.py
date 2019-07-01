@@ -25,16 +25,15 @@ def parse_args():
 
 # main function
 def main():
-	args = parse_args()
-    if(not os.path.isdir(args.model_dir)):
-        os.mkdir(args.model_dir)
-
+    args = parse_args()
+    os.mkdir(args.model_dir)
+    
     # create cartoongan object
-	cartoongan = CartoonGAN(args)
+    cartoongan = CartoonGAN(args)
 
-	# train model
-	cartoongan.compile_model()
-	cartoongan.train()
+    # train model
+    cartoongan.compile_model()
+    cartoongan.train()
 
 if __name__ == '__main__':
     main()
