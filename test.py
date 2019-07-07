@@ -17,7 +17,7 @@ def postprocess(img):
 # load models
 cartoongan = CartoonGAN(parse_args())
 cartoongan.compile_model()
-cartoongan.generator.load_weights('pretrained_model/CartoonGan_generator_epoch_300.h5')
+cartoongan.train_generator.load_weights('pretrained_model/CartoonGan_train_generator_epoch_300.h5')
 
 test_img = np.load('test.npy')
 test_in = test_img.reshape(1, test_img.shape[0], test_img.shape[1], test_img.shape[2])
