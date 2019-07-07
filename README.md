@@ -9,9 +9,9 @@ This is the repo for training the CartoonGAN. The original paper of CartoonGAN c
 ## Usage
 
 ### 1) Download this repository
-Start by [downloading](https://github.com/ml5js/training_CartoonGAN.git) this repo or clone this repository:
+Start by [downloading](https://github.com/Derek-Wds/training_CartoonGAN.git) this repo or clone this repository:
 ```bash
-git clone https://github.com/ml5js/training_CartoonGAN.git
+git clone https://github.com/Derek-Wds/training_CartoonGAN.git
 cd training_CartoonGAN
 ```
 
@@ -49,7 +49,7 @@ After making the dataset, now should use folllowing command to preprocess the im
 python preprocess.py
 ```
 
-If you do not have available data onhand, you could use the `download.py` to get the photos as well as cartoon images to be used during training.
+If you do not have available data on hand, you could use the `download.py` to get the photos as well as cartoon images to be used during training.
 
 ```bash
 python download.py
@@ -80,8 +80,10 @@ Or you could run bash script `run.sh`:
 bash run.sh
 ```
 
+If you want to resume the training, you could just use `load_weights` to load the saved weights of the modals (`generator`, `discriminator`, and `train_generator`) and keep training.
+
 ### 4) Visulization
-We provide access to the visulization of loss and generated images. You could use following command to do this:
+We provide access to the visualization of loss and generated images. You could use following command to do this:
 
 ```
 cd logs
@@ -91,7 +93,5 @@ tensorboard --logdir logs --port 9090
 Then you could have access to tensorboard at `localhost:9090`.
 
 ### 5) Use it
-
-
 
 That's it and have fun with CartoonGAN in ml5js!

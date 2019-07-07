@@ -7,14 +7,14 @@ from PIL import Image
 class Pixabay:
     def __init__(self, key, min_width=300, min_height=300, query='', page=1):
         self.url = 'https://pixabay.com/api'
-        self.params = {'key': key, 'image_type': 'photo', 
+        self.params = {'key': key, 'image_type': 'photo',
                         'pretty': 'false', 'min_width': min_width,
                         'min_height': min_height, 'per_page': 200, 'page': page
                         }
         if len(query) > 0:
             self.params['q'] = query
         self.page = page
-    
+
     def search(self):
         r = requests.get(self.url, params=self.params)
         hits = r.json()['hits']
@@ -47,7 +47,7 @@ def main():
     if (os.path.isdir('dataset')):
         print("Clear previous dataset")
         shutil.rmtree('dataset')
-    
+
     print('Creating folders ... ...')
     os.mkdir('dataset')
     os.mkdir('dataset/photo_imgs')
@@ -60,12 +60,12 @@ def main():
     print('Cartoon images process started!')
     print('==========================================================================')
 
-    # files = ['video/'+f for f in os.listdir('video') if os.path.isfile('video/'+f)]
-    # file_counter = 0
-    # for video_file in files:
-    #     command = 'ffmpeg -i "{}" -start_number 0 -ss 00:10:00 -vf fps=1 -s 256x256 "dataset/cartoon_imgs/${}-%05d.jpg"'.format(video_file, file_counter)
-    #     os.system(command)
-    # print()
+    files = ['video/'+f for f in os.listdir('video') if os.path.isfile('video/'+f)]
+    file_counter = 0
+    for video_file in files:
+        command = 'ffmpeg -i "{}" -start_number 0 -ss 00:10:00 -vf fps=1 -s 256x256 "dataset/cartoon_imgs/${}-%05d.jpg"'.format(video_file, file_counter)
+        os.system(command)
+    print()
 
     print('==========================================================================')
     print('Cartoon images process completed!')
@@ -79,7 +79,7 @@ def main():
     print('==========================================================================')
     print('Download photos from pixabay')
     print('==========================================================================')
-    
+
     counter = 0
     key = "7429820-c0f17225d11abf9ffe919ad24"
     query_list=['human+face','mountains','animals','sports','fashion','food','cars','technology','places','music','industry']
@@ -98,7 +98,7 @@ def main():
                     file_name = "./dataset/photo_imgs/"+str(counter)+'.jpg'
                     try:
                         with open(file_name, 'wb') as f:
-                            f.write(img_req.content) 
+                            f.write(img_req.content)
                             img = Image.open(file_name)
                             img = img.resize(DEFAULT_SIZE)
                             img.save(file_name)
