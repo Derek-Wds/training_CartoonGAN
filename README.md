@@ -86,7 +86,6 @@ If you want to resume the training, you could just use `load_weights` to load th
 We provide access to the visualization of loss and generated images. You could use following command to do this:
 
 ```
-cd logs
 tensorboard --logdir logs --port 9090
 ```
 
