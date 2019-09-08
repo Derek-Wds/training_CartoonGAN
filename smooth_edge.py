@@ -6,6 +6,9 @@ from tqdm import tqdm
 def smooth_edge(path, img_size=256):
     file_list = os.listdir(path)
     save_path = 'dataset/smooth_cartoon_imgs'
+    
+    if not os.path.exists(os.path.abspath()+'/'+save_path):
+        os.mkdir(save_path)
 
     kernel_size = 5
     kernel = np.ones((kernel_size, kernel_size), np.uint8)
