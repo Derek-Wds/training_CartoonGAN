@@ -259,7 +259,7 @@ class CartoonGAN():
                 # save model
                 if epoch % 50 == 0:
                     self.generator.save_weights(self.model_dir + '/' + 'CartoonGan_generator_epoch_{}.h5'.format(epoch))
-                    self.discriminator.save_weigths(self.model_dir + '/' + 'CartoonGan_discriminator_epoch_{}.h5'.format(epoch))
+                    self.discriminator.save_weights(self.model_dir + '/' + 'CartoonGan_discriminator_epoch_{}.h5'.format(epoch))
                     self.train_generator.save_weights(self.model_dir + '/' + 'CartoonGan_train_generator_epoch_{}.h5'.format(epoch))
         
         print('Done!')
